@@ -4,163 +4,124 @@
 #include "ConexionBD.h"
 #include "Persona.h"
 #include <mysql.h>
+
 using namespace std;
+
 class Estudiante : Persona {
-	// atributos
 private:
-	string codigo;
-	int id_estudiante = 0;
-	// constructores
+    string codigo;
+    int id_estudiante = 0;
+
+    
+    string limpiarDato(string dato) {
+        string resultado = "";
+        for (char c : dato) {
+            if (c == '\'' || c == ';' || c == '--' || c == '\\') continue;
+            resultado += c;
+        }
+        return resultado;
+    }
+
 public:
-	Estudiante() {}
-	Estudiante(string nom, string ape, string dir, string fn, int tel, int id_ts, string cod, int id_e)
-		: Persona(nom, ape, dir,tel, fn, id_ts) {
-		codigo = cod;
-		id_estudiante = id_e;
-	}
-	// metodos gettere y setter
-	string getCodigo() {
-		return codigo;
-	}
-	void setCodigo(string cod) {
-		codigo = cod;
-	}
-	int getIdEstudiante() {
-		return id_estudiante;
-	}
-	void setIdEstudiante(int id_e) {
-		id_estudiante = id_e;
-	}
-	string getNombres() {
-		return nombres;
-	}
-	void setNombres(string nom) {
-		nombres = nom;
-	}
-	string getApellidos() {
-		return apellidos;
-	}
-	void setApellidos(string ape) {
-		apellidos = ape;
-	}
-	string getDireccion() {
-		return direccion;
-	}
-	void setDireccion(string dir) {
-		direccion = dir;
-	}
-	int getTelefono() {
-		return telefono;
-	}
-	void setTelefono(int tel) {
-		telefono = tel;
-	}
-	int getIdTipoSangre() {
-		return id_tipo_sangre;
-	}
-	void setIdTipoSangre(int id_ts) {
-		id_tipo_sangre = id_ts;
-	}
-	void setFechaNacimiento(string fn) {
-		fecha_nacimiento = fn;
-	}
-	string getFechaNacimiento() {
-		return fecha_nacimiento;
-	}
-	// metodos CRUD
-	// metodos
-	void crear() {
-		int q_estado = 0;
-		ConexionBD cn = ConexionBD();
-		cn.abrir_conexion();
-		if (cn.getConector()) {
-			string t = to_string(telefono);
-			string id_ts = to_string(id_tipo_sangre);
-			string consulta = "INSERT INTO db_escuela.estudiantes(codigo, nombres, apellidos, direccion, telefono, fecha_nacimiento, id_tipo_sangre) VALUES ('" + codigo + "', '" + nombres + "', '" + apellidos + "', '" + direccion + "', " + t + ", '" + fecha_nacimiento + "', " + id_ts + ");";
-			const char* c = consulta.c_str();
-			q_estado = mysql_query(cn.getConector(), c);
-			if (!q_estado) {
-				cout << "Ingreso de datos Exitoso..." << endl;
-			}
-		}
-		else {
-			cout << " xxxx Consulta Falllida xxxx " << endl;
-		}
-		cn.cerrar_conexion();
-	}
-	void leer() {
-		ConexionBD conexion;
-		conexion.abrir_conexion();
-		MYSQL* conn = conexion.getConector();
-		if (conn) {
-			cout << "----------- Datos del Estudiante ------------------" << endl;
-			string query = "select e.id_estudiante as id, e.codigo, e.nombres, e.apellidos, e.direccion, e.telefono,e.fecha_nacimiento, ts.sangre from estudiantes as e inner join tipo_sangre as ts on e.id_tipo_sangre = ts.id_tipo_sangre;";
-			
-			const char* q = query.c_str();
-			mysql_query(conn, q);
-			MYSQL_RES* res = mysql_store_result(conn);
-			while (MYSQL_ROW row = mysql_fetch_row(res)) {
-				
-				cout << "ID: " << row[0] << " Codigo: " << row[1] << "," << " Nombres: " << row[2] << "," << " Apellidos: " << row[3] << "," << " Direccion: " << row[4] << "," << " Telefono: " << row[5] << "," << " Nacimiento: " << row[6] << "," << " Sangre: " << row[7] << endl;
-				cout << "-----------------------------" << endl;
-			}
-				
+    Estudiante() {}
+    Estudiante(string nom, string ape, string dir, string fn, int tel, int id_ts, string cod, int id_e)
+        : Persona(nom, ape, dir, tel, fn, id_ts) {
+        codigo = cod;
+        id_estudiante = id_e;
+    }
 
-			mysql_free_result(res);
-		}
-		else {
-			cout << "Error al conectar a la base de datos" << endl;
-		}
-		conexion.cerrar_conexion();
-	}
-	void actualizar() {
-		int q_estado = 0;
-		ConexionBD cn = ConexionBD();
-		cn.abrir_conexion();
-		if (cn.getConector()) {
+    
+    void setCodigo(string cod) { codigo = limpiarDato(cod); }
+    void setIdEstudiante(int id_e) { id_estudiante = id_e; }
+    void setNombres(string nom) { nombres = limpiarDato(nom); }
+    void setApellidos(string ape) { apellidos = limpiarDato(ape); }
+    void setDireccion(string dir) { direccion = limpiarDato(dir); }
+    void setTelefono(int tel) { telefono = tel; }
+    void setFechaNacimiento(string fn) { fecha_nacimiento = fn; }
+    void setIdTipoSangre(int id_ts) { id_tipo_sangre = id_ts; }
 
-			string t = to_string(telefono);
-			string id_ts = to_string(id_tipo_sangre);
-			string id_e = to_string(id_estudiante);
-			string consulta = "update estudiantes set codigo = '" + codigo + "',nombres = '" + nombres + "',apellidos='" + apellidos + "',direccion='" + direccion + "',telefono=" + t + ",fecha_nacimiento = '" + fecha_nacimiento + "',id_tipo_sangre=" + id_ts + " where id_estudiante = " + id_e + "";			
-			const char* c = consulta.c_str();
-			q_estado = mysql_query(cn.getConector(), c);
-			if (!q_estado) {
-				cout << "Modificacion de Datos Exitoso...." << endl;
-			}
-			else {
-				cout << "xxxxx Consulta  Fallida xxxxx" << endl;
-			}
+    void crear() {
+        int q_estado = 0;
+        ConexionBD cn;
+        cn.abrir_conexion();
+        if (cn.getConector()) {
+            string t = to_string(telefono);
+            string id_ts = to_string(id_tipo_sangre);
 
-		}
-		else {
-			cout << " xxxx Conexion Falllida xxxx " << endl;
-		}
-		cn.cerrar_conexion();
-	}
-	void borrar() {
-		int q_estado = 0;
-		ConexionBD cn = ConexionBD();
-		cn.abrir_conexion();
-		if (cn.getConector()) {
+            
+            string check = "SELECT codigo FROM estudiantes WHERE codigo = '" + codigo + "'";
+            mysql_query(cn.getConector(), check.c_str());
+            MYSQL_RES* res = mysql_store_result(cn.getConector());
+            if (mysql_num_rows(res) > 0) {
+                cout << "Error: El codigo " << codigo << " ya existe en la base de datos." << endl;
+                mysql_free_result(res);
+            }
+            else {
+                mysql_free_result(res);
+                string consulta = "INSERT INTO estudiantes(codigo, nombres, apellidos, direccion, telefono, fecha_nacimiento, id_tipo_sangre) VALUES ('" + codigo + "', '" + nombres + "', '" + apellidos + "', '" + direccion + "', " + t + ", '" + fecha_nacimiento + "', " + id_ts + ");";
+                q_estado = mysql_query(cn.getConector(), consulta.c_str());
+                if (!q_estado) cout << "Ingreso de datos Exitoso..." << endl;
+                else cout << "Error al insertar: " << mysql_error(cn.getConector()) << endl;
+            }
+        }
+        cn.cerrar_conexion();
+    }
 
-			string t = to_string(telefono);
-			string id_ts = to_string(id_tipo_sangre);
-			string id_e = to_string(id_estudiante);
-			string consulta = "delete from estudiantes  where id_estudiante = " + id_e + "";
-			const char* c = consulta.c_str();
-			q_estado = mysql_query(cn.getConector(), c);
-			if (!q_estado) {
-				cout << "Eliminacion de Datos Exitoso...." << endl;
-			}
-			else {
-				cout << "xxxxx Consulta  Fallida xxxxx" << endl;
-			}
+    void leer() {
+        ConexionBD conexion;
+        conexion.abrir_conexion();
+        MYSQL* conn = conexion.getConector();
+        if (conn) {
+            string query = "SELECT e.id_estudiante, e.codigo, e.nombres, e.apellidos, e.direccion, e.telefono, e.fecha_nacimiento, ts.sangre FROM estudiantes AS e INNER JOIN tipo_sangre AS ts ON e.id_tipo_sangre = ts.id_tipo_sangre;";
+            mysql_query(conn, query.c_str());
+            MYSQL_RES* res = mysql_store_result(conn);
+            cout << "--- LISTADO DE ESTUDIANTES ---" << endl;
+            while (MYSQL_ROW row = mysql_fetch_row(res)) {
+                cout << row[0] << " | " << row[1] << " | " << row[2] << " " << row[3] << " | " << row[4] << " | " << row[7] << endl;
+            }
+            mysql_free_result(res);
+        }
+        conexion.cerrar_conexion();
+    }
 
-		}
-		else {
-			cout << " xxxx Conexion Falllida xxxx " << endl;
-		}
-		cn.cerrar_conexion();
-	}
-};
+    void actualizar() {
+        ConexionBD cn;
+        cn.abrir_conexion();
+        if (cn.getConector()) {
+            string id_e = to_string(id_estudiante);
+            string consulta = "UPDATE estudiantes SET codigo = '" + codigo + "', nombres = '" + nombres + "', apellidos = '" + apellidos + "', direccion = '" + direccion + "', telefono = " + to_string(telefono) + ", fecha_nacimiento = '" + fecha_nacimiento + "', id_tipo_sangre = " + to_string(id_tipo_sangre) + " WHERE id_estudiante = " + id_e;
+            if (!mysql_query(cn.getConector(), consulta.c_str())) cout << "Modificacion Exitosa." << endl;
+            else cout << "Error: " << mysql_error(cn.getConector()) << endl;
+        }
+        cn.cerrar_conexion();
+    }
+
+    void borrar() {
+        ConexionBD cn;
+        cn.abrir_conexion();
+        if (cn.getConector()) {
+            string consulta = "DELETE FROM estudiantes WHERE id_estudiante = " + to_string(id_estudiante);
+            if (!mysql_query(cn.getConector(), consulta.c_str())) cout << "Registro eliminado." << endl;
+            else cout << "Error al eliminar." << endl;
+        }
+        cn.cerrar_conexion();
+    }
+    bool existeTipoSangre(int id) {
+        bool existe = false;
+        ConexionBD cn;
+        cn.abrir_conexion();
+        if (cn.getConector()) {
+            string consulta = "SELECT id_tipo_sangre FROM tipo_sangre WHERE id_tipo_sangre = " + to_string(id);
+            const char* c = consulta.c_str();
+            mysql_query(cn.getConector(), c);
+
+            MYSQL_RES* res = mysql_store_result(cn.getConector());
+            if (mysql_num_rows(res) > 0) {
+                existe = true;
+            }
+            mysql_free_result(res);
+        }
+        cn.cerrar_conexion();
+        return existe;
+    }
+};  
